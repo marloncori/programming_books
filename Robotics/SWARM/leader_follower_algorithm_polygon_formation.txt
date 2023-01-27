@@ -1,0 +1,162 @@
+https://www.sciencedirect.com/science/article/pii/S1319157820304274
+
+Neighbor-leader algorithm
+
+In controlling formation algorithms, it is typically
+expected that ideal estimation data is accessible for
+the robots in the formation. In a multi-robotics system,
+where maintaining the shape of the formation is important
+if the neighboring robots do not have fully tuned sensors,
+then the strength of the required shape will not stabilize
+the group formation. Specifically the configuations show
+undesirable group motion as well as desired shape distortion.
+
+This problem can persist if two adjacent robots do not bear the
+same responsibility. For example, only one robot controls the error 
+distance between two adjacent robots in master and slave configuration
+which called leader-follower configuration. The leader-follower formation
+leads to a direct topology that describes the relationships between neighboring
+robots and analyzes the main propeties of configuration control algorithms
+such as stability, gravity and convergence time. An analysis of the distribution
+of responsibilities between neighboring robots showed
+that iscreasing the number of robots in a team requires additional
+costs to coordinate all snesor pairs on neighboring robots.
+
+This algorithm is used to predict the trajectories of the neighbor
+robots dependent on the posture of the leader one. It takes into 
+account the observed location of the lader robot to go towards it.
+At fist, the positions and the direcitons of the neighbor robots
+are calculated according to the leader position and at each step
+of the neighbor robot movement the length of the movement step is
+increased the by a factor (j) until the distance between leader and
+neighbor robots becomes equal to the radius of the circle where the 
+target of each robot is around the leader to form the static polygon
+shape. The investigation of this algorithm requires two parts.
+
+Part ONE: Rearrange the angles among the neighbor robots
+
+In this part, the robots are randomly distributed. The coordination
+axis and directions for each robot are calculated relative to the
+leader robot. This position formation can be obtained from the RP Lidar
+(a from a gyroscope and ultrasound) sensor installed on each robot. RP
+Lidar provides direction and distance information for each robot in the
+path. From this informatio, the position of each robot can be calculated using
+the following prodcure:
+
+Step 1 = computation of initial position - the coordinates and direcitions of 
+each robot adjacent to the leader robot must be calculated according to the following
+prodcured as shown below:
+     1. The leader RP LIDAR scans the environment to calculate 'theta_i'
+     (rotation angle between the leader direction and the robot in i position)
+     and also calculate the 'D_i'(the distance among the leader robot and the
+     robot i)
+ 
+    2. Calculate the direction of the robot i with respect to the leader location
+    as 'mu_i = phi_i + theta_i', where phi_i is the orientation of the leader robot.
+
+    3. The coordinates of the robot_i are computed as follows:
+     x_i = x_0 + D_i * cos(mu_i)
+     y_i = y_0 + D_i * sin(mu_i)
+
+     (x_0 and y_0 are the leader robot coordinates)
+     (x_i and y_i are the robot_i coordinates)
+
+ Step 2: change the neighbor robots orientation = in this step
+  each robot is located at circular trajectory around the leader
+  robot as shown below. The directions of the robots must be changed
+  to align with the circular parth on which the robots are located. This
+  process is implemented according to the following step:
+   
+  1. The neighbor robot i scan the environment to correct the angle alpha_i
+   between its direction and the leader robot location
+  2. Change the orientation of the neighbor robot i by j degrees
+     beta_i = beta_i + j
+
+  3. Steps 1 and 2 are repeated until alpha_i = 90 degrees
+
+Step 3 - rearrange the distance among the neighbor robots - the uniform
+ formation of the neighbor robots occur when the angles between two neighbor
+ robots wrt the leader robot have the same value. This process is implemented
+ according to the following steps:
+  1 - compute the angle ro between each two neighbor robots wrt the leader one
+    ro = 2*pi / n
+ 
+    where n is the number of the neighbor robots
+  2 - compute the angles between the neighbor robots
+  and the leader one as shown below.
+  gama_i = atan((y_i - (-y_0)) / (x_i - (-x_0)))
+
+  3. Rearrange the angles between the neighbor robots
+  and the leader one in ascending manner
+  4. Compute the orientation angle between each two neighbor
+  robots
+   xsi_i = gama_i + 1 - gama_i, where xsi_i is the angle between
+   the robots i and i + 1
+  5 . if the angle xsi_i is less than the angle ro then incresase
+   the angle gama_i by j degrees
+    gama_i = gama_i + j
+  
+  6. Compute the new position of neighbor robot i
+  x_i+1 = x_i + m * cos(gama_i)
+  y_i+1 = y_i + m * sin(gama_i)
+
+  7. Repeat steps 5 and 6 for current neighbor robot
+  and for all robots untill all the angles between the
+  neighbor robots and the leadre one are equal and have the value
+  ro*xsi_i = ro
+
+
+ Part TWO: rearranged the distances between the neighbor
+  robots and the leader
+
+  In this part the robots must change their orientation
+  towards the leadre one and move until reach to the circular
+  path that pass through the desired polygon shape as in the
+  following step:
+
+  step 1 - change the neighbor robots orientation, at the ned
+  of the first stage, all the neighbor robots are arranged
+  in uniform angles with each other and have different distances
+  from the leader one. The direction of each neighbor robot is perpendicular
+  to the leader location. These orientations must be changed by 90 degrees to
+  be in direct path to the leader robot location. This process implements according
+  to the following steops:
+  1. According to fig 3 the orientation fo the neighbor robot i is:
+  sigma_i = beta_i + mu_i
+
+  2. The neighbor robot i orientation is increased 
+   by j degrees at each step
+  sigma_i = sigma_i + k
+
+  3. The process is repeated until beta_i = 180 degrees
+  as shown in fig 6
+
+ Step 2 = complete the polygon shape construciton: after
+  changing the neighbor robots orientation, the next step 
+  is to move these robots towards the leader one at distances
+  represented by the circular path that run through the vertices
+  of the polygon shape. This process is implemented accoring to
+  the following steps:
+
+  1. compute the new position of the neighbor robot i:
+   xi+1 = xi + m * cos(sigma_o)    (13)
+   yi+1 = yi + m * sin(sigma_o)    (14)
+
+  2. compute the distance between the neighbor
+  robots and the leader one as
+  Di = sqrt((yi - -y0)**2 + (xi - -x0)**2)
+
+  3. Repeat 1 and 1 until Di = L, where L represents
+  the formation distance between the neighbor robots
+  and the leader as shown in fig 6
+
+  step3 - complete the neighbor robots orientation - correct
+  the orientation of all neighbor robot to make their directions
+  as the leader one`s by the following equations as shown in fig 7
+  and the complete static polygon formation shown in fig 8
+  
+  xsi_i = pi/2 - mu_i
+  delta_i = pi + xsi_i + phi_i
+  beta_i = beta_i + pi
+
+  THE END.
